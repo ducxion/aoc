@@ -1,0 +1,70 @@
+{
+ "metadata": {
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": 3
+  },
+  "orig_nbformat": 2
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2,
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "\n",
+    "fname = \"day4.test\"\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "count=0\n",
+    "df = pd.DataFrame(columns=[\"byr\",\"iyr\", \"eyr\", \"hgt\", \"hcl\", \"ecl\", \"pid\", \"cid\"])\n",
+    "\n",
+    "with open(fname) as file:\n",
+    "    for line in file:\n",
+    "        if line == \"\\n\":\n",
+    "            count +=1            \n",
+    "            continue\n",
+    "        for entry in line.split():\n",
+    "            col = entry.split(\":\")[0]\n",
+    "            data = entry.split(\":\")[1]\n",
+    "            df.iloc[count][col] = data\n",
+    "    f.close()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "len(df)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ]
+}
