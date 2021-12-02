@@ -190,30 +190,47 @@ class Advent:
 
     def day7(self):
 
-        df = pd.DataFrame()
-
+        namelist = list()
+        numlist = list()
         with open(self.data) as file:
             for line in file:
                 line = re.sub(r"\bcontain\b|\bno\b", "", line)                
                 line = re.split(r"bags|bag", line[:-2])                
                 line = [re.sub("[,| ]", "", entry) for entry in line]
-                parent = [line[0]]
-                childname = [re.findall("[a-z]+", string) for string in line[1:]]
-                childname = [item for sublist in childname for item in sublist]                
-                childnum = [re.findall(r'\d+', string) for string in line[1:]]
-                childnum = [[int(item) for sublist in childnum for item in sublist]]
-                if len(childnum[0]) == 0:
-                    continue
-                df = df.append(pd.DataFrame(index=parent, columns=childname, data=childnum))
+                #parent = line[0]
+                names = [re.findall("[a-z]+", string) for string in line]
+                names = [item for sublist in names for item in sublist]                
+                nums = [re.findall(r'\d+', string) for string in line[1:]]
+                nums = [int(item) for sublist in nums for item in sublist]
+                nums.insert(0,0)
 
-        def nextcolor(color):            
-            return df[color][df[color].notna()].index.tolist()
+                namelist.append(names)
+                numlist.append(nums)
+
+        length = max(map(len, namelist))
+        namearr = np.array([xi+[None]*(length-len(xi)) for xi in namelist])
+        numarr = np.array([xi+[np.nan]*(length-len(xi)) for xi in numlist])
+
+        if self.star == "13":
+            master = set()
+            candidates = set(['shinygold'])            
+            while len(candidates) >= 1:
+                next_candidates = list()
+                for color in candidates:
+                    indices = np.where(namearr==color)
+                    [next_candidates.append(i) for i in namearr[indices[0][np.where(indices[1] != 0)],0]]
+                    master.add(color)
+                candidates = set(next_candidates).difference(master)
+            return len(master) - 1 # don't count shinygold
         
-        colors = {0: ["shinygold"]}     
-          
-        level = 0        
-        for color in colors[level]:            
-            colors[level+1] = nextcolor(color)              
+        else:
+            master=dict()
+            candidates = set(['shinygold'])
+            for color in candidates:
+                indices = np.where(namearr==color)
+                indices = indices[0][np.where(indices[1] == 0)]
+                p
+            children = namearr[indices, 1:]
 
     def day8(self):
         arr = np.genfromtxt(self.data, dtype="str")
@@ -305,7 +322,6 @@ class Advent:
                         nchoices[i] +=1
             breakpoint()
 
-
     def day11(self):
         data = np.genfromtxt(self.data, dtype="str",comments="%").reshape(-1,1)
         data = np.char.replace(data, ".", "2")
@@ -355,7 +371,7 @@ class Advent:
         print("The secret value for unlocking Star # {}, is {}".format(self.star, output))
         print("This calculation took {} seconds".format(end-start))
 
-test=False
+test=True
 star = input("Which star should I calculate?")
 Advent = Advent(star, test)    
 Advent.reveal_star()
