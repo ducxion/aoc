@@ -1,10 +1,9 @@
 ### ADVENT OF CODE ###
-import re
 import math
+import copy
 import itertools
 import numpy as np
 import pandas as pd
-import scipy.ndimage as ndimage
 from pathlib import Path
 from timeit import default_timer as timer
 
@@ -26,7 +25,7 @@ class Advent:
             return sum(pd.Series(array).rolling(3).sum().diff() >= 1)
 
     def day2(self):
-        array = np.loadtxt(self)
+        array = np.loadtxt(self.data, dtype=str)
         axis = array[:,0].astype(str)
         val = array[:,1].astype(int)
         
@@ -35,30 +34,13 @@ class Advent:
         val[np.where(axis == "up")] *= -1
         val_depth = copy.deepcopy(val)
         val_depth[np.where(axis == "forward")] = 0
-        depth = np.cumsum(val_depth)[-1]
+        depth = np.cumsum(val_depth)
         if self.star == 3:
-            return depth * position
+            return depth[-1] * position
 
         else:
             idx = np.where(axis == "forward")
-            return np.cumsum(val[idx] * depth[idx])[-1] * position
-
-
-        if self.star == 3:
-            pos_dict = dict()
-            for direction in ['forward', 'down', 'up']:
-                index = np.where(axis == direction)
-                pos_dict[axis] = np.sum(array[index,1].astype(int))            
-            return pos_dict['forward'] * (pos_dict['down'] - pos_dict['up'])
-
-        else:
-    
-
-        
-
-
-        
-        
+            return np.cumsum(val[idx] * depth[idx])[-1] * position      
 
     def reveal_star(self):
         start = timer()
