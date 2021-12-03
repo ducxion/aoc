@@ -4,6 +4,7 @@ import copy
 import itertools
 import numpy as np
 import pandas as pd
+from scipy.stats import mode
 from pathlib import Path
 from timeit import default_timer as timer
 
@@ -40,7 +41,50 @@ class Advent:
 
         else:
             idx = np.where(axis == "forward")
-            return np.cumsum(val[idx] * depth[idx])[-1] * position      
+            return np.cumsum(val[idx] * depth[idx])[-1] * position
+
+    def day3(self):
+        array = np.genfromtxt(self.data, delimiter=1, dtype=int)
+        gamma, epsilon = [],[]
+        for col in range(array.shape[1]):
+            val = mode(array[:,col])[0][0]
+            gamma.append(str(val))
+            if val == 0:
+                val_e = 1
+            else:
+                val_e = 0 
+            epsilon.append(str(val_e))
+        if self.star == 5:
+            gamma = int(''.join(gamma), 2)
+            epsilon = int(''.join(epsilon), 2)        
+            return gamma * epsilon
+
+        else:            
+            def life_support_loop(array, col, method="O2"):
+                column = array[:,col]
+                md = mode(column)[0][0]
+                count = mode(column)[1][0]
+                if method == 'co2':
+                    md = abs(md-1)
+                if count == len(column)/2: 
+                    # case: equal modes when O2
+                    md = abs(md-1)
+                arr = array[np.where(column == md)]                
+                return arr
+            
+            def o2_co2_loop(array, method):
+                arr = copy.deepcopy(array)
+                col = 0          
+                while arr.shape[0] > 1:
+                    arr = life_support_loop(arr, col, method)
+                    col += 1                
+                b = arr[0]
+                return b.dot(2**np.arange(b.size)[::-1])
+            
+            o2 = o2_co2_loop(array, method='o2')
+            co2 = o2_co2_loop(array, method='co2')
+            return o2 * co2
+
 
     def reveal_star(self):
         start = timer()
