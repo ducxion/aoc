@@ -45,16 +45,12 @@ class Advent:
 
     def day3(self):
         array = np.genfromtxt(self.data, delimiter=1, dtype=int)
-        gamma, epsilon = [],[]
-        for col in range(array.shape[1]):
-            val = mode(array[:,col])[0][0]
-            gamma.append(str(val))
-            if val == 0:
-                val_e = 1
-            else:
-                val_e = 0 
-            epsilon.append(str(val_e))
         if self.star == 5:
+            gamma, epsilon = [],[]
+            for col in range(array.shape[1]):
+                val = mode(array[:,col])[0][0]
+                gamma.append(str(val))
+                epsilon.append(str(abs(val-1)))
             gamma = int(''.join(gamma), 2)
             epsilon = int(''.join(epsilon), 2)        
             return gamma * epsilon
