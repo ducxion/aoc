@@ -53,7 +53,7 @@ class Advent:
                 epsilon.append(str(abs(val-1)))
             gamma = int(''.join(gamma), 2)
             epsilon = int(''.join(epsilon), 2)        
-            return gamma * epsilon
+            return gamma * epsilon            
 
         else:            
             def life_support_loop(array, col, method="O2"):
@@ -80,7 +80,31 @@ class Advent:
             o2 = o2_co2_loop(array, method='o2')
             co2 = o2_co2_loop(array, method='co2')
             return o2 * co2
+    
+    def day4(self):
+        array = np.genfromtxt(self.data, dtype=int, skip_header=2)
+        inputs = np.genfromtxt(self.data, dtype=int, delimiter=',', max_rows=1)        
+        zeros = np.zeros_like(array)
 
+        array = np.array(np.split(array, array.shape[0]/5, axis=0))
+        zeros = np.array(np.split(zeros, zeros.shape[0]/5, axis=0))
+        
+        checked = np.array([])
+        boxes = np.arange(0, zeros.shape[0])
+
+        for num in inputs:
+            zeros[np.where(array == num)] = 1
+            for box in np.setdiff1d(boxes, checked):
+                if (
+                    (np.any(np.sum(zeros[box], axis=0) == 5)) | 
+                    (np.any(np.sum(zeros[box], axis=1) == 5))):
+                    box_val = np.sum(array[box][np.where(zeros[box] == 0)])
+                    if self.star == 7:
+                        return box_val * num
+                    else:
+                        checked = np.append(checked, box)
+                        if len(checked) == len(boxes):
+                            return box_val * num
 
     def reveal_star(self):
         start = timer()
