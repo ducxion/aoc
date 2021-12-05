@@ -106,6 +106,44 @@ class Advent:
                         if len(checked) == len(boxes):
                             return box_val * num
 
+    def day5(self):
+        inputs = np.genfromtxt(self.data, dtype=str, delimiter=',')
+        midcol = np.stack(np.char.split(inputs[:,1], sep=' -> '))
+        # columns swapped for x1,x2,y1,y2 format
+        array = np.array([inputs[:,0], midcol[:,1], midcol[:,0], inputs[:,-1]], dtype=int).T
+
+        assert sum(sum(array < 0)) == 0 # assumption: no negative values
+        xmax = max(np.maximum(array[:,0], array[:,2])) +1
+        ymax = max(np.maximum(array[:,1], array[:,3])) +1
+        plane = np.zeros((ymax, xmax))
+
+        def draw_line(row, plane):
+            coords = {"xx":None, "yy":None} 
+            name = ["xx", "yy"]           
+            for i in [0,1]:
+                if np.diff(row[i]) < 0:
+                    coords[name[i]] = np.arange(row[i,0], row[i,1]-1, -1)
+                else:
+                    coords[name[i]] = np.arange(row[i,0], row[i,1]+1, 1)
+
+            length = max([len(x) for x in coords.values()])
+            for name in coords.keys():
+                if len(coords[name]) == 1:
+                    coords[name] = np.repeat(coords[name], length)            
+            
+            plane[coords["yy"],coords["xx"]] += 1
+            return plane
+        
+        for row in array:            
+            row = row.reshape(2,2)
+            if np.any(np.diff(row) == 0):
+                plane = draw_line(row, plane)
+            elif self.star == 10:
+                plane = draw_line(row, plane)
+        
+        return len(np.where(plane > 1)[0])
+
+
     def reveal_star(self):
         start = timer()
         output = eval("self.day"+str(self.day)+"()")     
