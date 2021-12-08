@@ -142,7 +142,47 @@ class Advent:
                 plane = draw_line(row, plane)
         
         return len(np.where(plane > 1)[0])
+    
+    def day6(self):
+        array = np.genfromtxt(self.data, dtype=int, delimiter=',')
+        days_total = 256 # test: 18 | star: 80
+        if self.star == 11:
+            time = np.arange(1,days_total+1) 
+            for day in time:
+                idx = np.where(array == 0)
+                array = array - 1
+                array[idx] = 6
+                array = np.append(array, [8]*len(idx[0]))
 
+            return len(array)
+
+        if self.star == 12:
+
+            def spawn(age, tdays):
+                arr = np.zeros(tdays+10, dtype=int)
+                arr[age] = 1
+                for day in range(tdays):
+                    if arr[day] > 0:
+                        arr[day+7] += (1*arr[day])
+                        arr[day+9] += (1*arr[day])
+                return arr[:tdays].sum()
+
+            count = 0
+            for age in array:
+                count += spawn(age,days_total)
+            return count + len(array)
+        
+    def day7(self):        
+        arr = np.genfromtxt(self.data, dtype=int, delimiter=',')
+        fuel_counts = []
+        for position in np.arange(min(arr), max(arr)+1):
+            dup = np.repeat(position, len(arr))
+            if self.star == 13:   
+                fuel_counts.append(sum( abs(arr-dup)))
+            else:
+                fuel_counts.append(sum((abs(arr - dup) * ((abs(arr-dup) +1))) / 2)) # n(n+1) / 2
+        
+        return min(fuel_counts)
 
     def reveal_star(self):
         start = timer()
