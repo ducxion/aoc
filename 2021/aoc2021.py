@@ -3,6 +3,7 @@ import math
 import string
 import copy
 import itertools
+import argparse
 import numpy as np
 import pandas as pd
 from skimage.measure import label
@@ -12,10 +13,10 @@ from timeit import default_timer as timer
 
 
 class Advent:
-    def __init__(self, star, test):
-        self.star = int(star)
-        self.test = test
-        self.day = math.ceil(int(star)/2)
+    def __init__(self, args):
+        self.star = int(args.star)
+        self.test = args.test_input
+        self.day = math.ceil(int(self.star)/2)
         self.data = Path.cwd() / "input" / "day{}.input".format(self.day)
         if self.test == True:
             self.data = Path.cwd() / "test/day{}.test".format(self.day)
@@ -346,6 +347,15 @@ class Advent:
         print("This calculation took {} seconds".format(end-start))
 
 test=False
-star = input("Which star should I calculate?")
-Advent = Advent(star, test)
+parser = argparse.ArgumentParser(
+    description='A simple Python class called Advent for implementing \
+                my Python solutions for Advent of Code 2021 \
+                (https://adventofcode.com/2021/about)')
+
+parser.add_argument("-t", "--test_input", help="Runs the code with the test input", action="store_true")
+parser.add_argument("-s", "--star", help="Select which star should be calucated", type=int)
+args = parser.parse_args()
+if not args.star:
+    args.star = input("Which star should I calculate?")
+Advent = Advent(args)
 Advent.reveal_star()
