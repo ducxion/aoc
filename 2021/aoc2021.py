@@ -18,8 +18,15 @@ class Advent:
         self.test = args.test_input
         self.day = math.ceil(int(self.star)/2)
         self.data = Path.cwd() / "input" / "day{}.input".format(self.day)
-        if self.test == True:
+
+        if self.test:
             self.data = Path.cwd() / "test/day{}.test".format(self.day)
+        
+        if args.description:
+            path = Path.cwd() / "desc" / "day{}.desc".format(self.day)
+            with open(path) as desc:
+                print(desc.read())
+                
 
     def day1(self):
         array = np.loadtxt(self.data)
@@ -346,16 +353,30 @@ class Advent:
         print("The secret value for unlocking Star # {}, is {}".format(self.star, output))
         print("This calculation took {} seconds".format(end-start))
 
-test=False
+
 parser = argparse.ArgumentParser(
     description='A simple Python class called Advent for implementing \
                 my Python solutions for Advent of Code 2021 \
                 (https://adventofcode.com/2021/about)')
 
-parser.add_argument("-t", "--test_input", help="Runs the code with the test input", action="store_true")
-parser.add_argument("-s", "--star", help="Select which star should be calucated", type=int)
+parser.add_argument("-t",
+                    "--test_input", 
+                    help="Runs the code with the test input",
+                    action="store_true")
+
+parser.add_argument("-s", 
+                    "--star", 
+                    help="Select which star should be calculated",
+                    type=int)
+
+parser.add_argument("-d",
+                    "--description", 
+                    help="Prints the problem description for the specified star/day",
+                    action="store_true")
+
 args = parser.parse_args()
 if not args.star:
     args.star = input("Which star should I calculate?")
 Advent = Advent(args)
-Advent.reveal_star()
+if not args.description:
+    Advent.reveal_star()
