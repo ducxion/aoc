@@ -1,9 +1,11 @@
 ### ADVENT OF CODE ###
 import math
+import string
 import copy
 import itertools
 import numpy as np
 import pandas as pd
+from skimage.measure import label
 from scipy.stats import mode
 from pathlib import Path
 from timeit import default_timer as timer
@@ -183,6 +185,158 @@ class Advent:
                 fuel_counts.append(sum((abs(arr - dup) * ((abs(arr-dup) +1))) / 2)) # n(n+1) / 2
         
         return min(fuel_counts)
+    
+    def day8(self):
+        array = np.genfromtxt(self.data, dtype = str, delimiter = ' ')
+        calc_length = np.vectorize(len)
+        length_array = calc_length(array)
+        if self.star == 15:
+            return np.sum(np.isin(length_array[:,11:], [2,3,4,7]))
+        else:
+
+            def calculate_row(array, length_array):                
+                full = set(string.ascii_lowercase[0:7])
+                chardict = dict.fromkeys(list(full))
+                numdict = dict.fromkeys(np.arange(0,10))
+                lendict = dict.fromkeys(set(length_array[0:10]))
+                for i in lendict.keys():
+                    lendict[i] = set(array[np.where(length_array == i)])
+                for i in range(0,4):
+                    nums = [1,4,7,8]
+                    lens = [2,4,3,7]
+                    numdict[nums[i]] = set(
+                        array[np.where(length_array == lens[i])][0])
+
+                def charset(chardict, chars):
+                    return set().union(*[chardict[x] for x in list(chars)])
+
+                def char_from_num(number, chardict):
+                    legacy = {0:'abcefg', 1:'cf', 2:'acdeg', 3:'acdfg', 4:'bcdf',
+                    5:'abdfg', 6:'abdefg', 7:'acf', 8:'abcdefg', 9:'abcdfg'}
+                    return set(''.join([''.join(chardict[x]) for x in list(legacy[number])]))
+
+                def num_from_char(char, numdict):
+                    return np.where(np.array(list(numdict.values())) == set(char))[0][0]
+
+                # a. 
+                chardict['a'] = set(numdict[7]).difference(numdict[1])
+                # b.                
+                candidates = [full.difference(set(num)) for num in lendict[6]]
+                chardict['d'] = numdict[4].difference(
+                    numdict[1]).intersection(set().union(*candidates)) 
+                chardict['b'] = numdict[4].difference(numdict[1]).difference(chardict['d'])         
+                # 5. & f
+                numdict[5] = set(np.array(list(lendict[5])) \
+                [np.core.defchararray.find(list(lendict[5]), ''.join(chardict['b'])) != -1][0])
+                chardict['f'] = numdict[5].intersection(numdict[1])                
+                chardict['c'] = numdict[1].difference(chardict['f'])                
+                #chardict['b'] = numdict[4].difference(charset(chardict, 'fcd'))                
+                chardict['g'] = numdict[5].difference(charset(chardict,'abdf'))                
+                chardict['e'] = full.difference(charset(chardict, 'abcdfg'))
+
+                for val in [0,2,3,6,9]:
+                    numdict[val] = char_from_num(val, chardict)
+                
+                output_list = [num_from_char(char,numdict) for char in array[11:]]
+
+                return int(''.join(map(str,output_list))) 
+            
+            output_integers = list()
+            for i in range(0, array.shape[0]):
+                output_integers.append(calculate_row(array[i], length_array[i]))
+            return sum(output_integers)
+
+    def day9(self):
+        array = np.genfromtxt(self.data, dtype=float, delimiter=1)
+        if self.star == 17:
+            array = np.pad(array, 1, constant_values=9)
+            zeros = np.zeros_like(array)
+            for i in range(1, array.shape[0]-1):
+                for j in range(1, array.shape[1]-1):
+                    val = array[i,j] 
+                    neighbours = [
+                        array[i+1,j],
+                        array[i-1,j],
+                        array[i,j+1],
+                        array[i,j-1]
+                        ]
+                    if np.all(val < neighbours):
+                        zeros[i,j] = array[i,j]+1
+
+            return zeros.sum()
+
+        elif self.star == 18:            
+            zeros = np.ones_like(array)
+            zeros[np.where(array == 9)] = 0
+            regions = label(zeros, connectivity=1)
+            counts = [(regions == x).sum() for x in range(1,regions.max()+1)]
+
+            return np.prod(sorted(counts, reverse=True)[0:3])
+        
+    def day10(self):
+        errorlist, scorelist = list(), list()
+        mapping = dict(zip(list(')]}>'), list('([{<')))
+        errorscore = dict(zip(list(')]}>'), [3,57,1197,25137]))
+        comscore = dict(zip(list('([{<'), [1,2,3,4]))
+
+        
+        with open(self.data) as file:
+            errorlist = list()
+            for line in file:
+                openlist = list()
+                corrupted = False
+                for f in list(line):                    
+                    if f in list('([{<'):
+                        openlist.append(f)       
+                    elif f in list(')]}>'):
+                        if mapping[f] == openlist[-1]:
+                            openlist.pop(-1)
+                        else:
+                            errorlist.append(f)
+                            corrupted = True
+                            break
+                if not corrupted:
+                    score = 0
+                    for x in np.flip(openlist):
+                        score *= 5
+                        score += comscore[x]
+                    scorelist.append(score)
+
+        if self.star == 19:
+            return sum([errorscore[x] for x in errorlist])
+        else:
+            return np.median(scorelist)
+
+    def day11(self):
+
+        def flash(xy, array):
+            array[xy[0], xy[1]] = np.nan
+            xcoords = [xy[0]+i for i in [-1,0,1]]
+            ycoords = [xy[1]+i for i in [-1,0,1]]
+            coords = np.meshgrid(xcoords, ycoords)
+            array[tuple(coords)] += 1
+            return array
+
+        array = np.genfromtxt(self.data, dtype=float, delimiter=1)
+        array = np.pad(array, 1, constant_values=np.nan)        
+        s = slice(1,-1)
+        daycount = 0
+        flashcount = 0    
+
+        while np.sum(array == 0) != 100:
+            array +=1
+            daycount += 1
+            while np.sum(array > 9) > 0:
+                index = np.where(array>9)
+                pairs = list(zip(index[0], index[1]))
+                for xy in pairs:
+                    flashcount += 1
+                    array = flash(xy, array)
+            array[s,s,][np.isnan(array[s,s])] = 0
+            if (self.star == 21) & (daycount == 100):
+                return flashcount
+
+        return daycount
 
     def reveal_star(self):
         start = timer()
@@ -193,5 +347,5 @@ class Advent:
 
 test=False
 star = input("Which star should I calculate?")
-Advent = Advent(star, test)    
+Advent = Advent(star, test)
 Advent.reveal_star()
